@@ -1,0 +1,6 @@
+{
+  "name": "Real Estate CRM & Activities Manager",
+  "description": "Comprehensive real estate CRM with activity tracking, excel-like data entry, buyer & customer pipeline, property approval locking, drag-and-drop CRM boards, and analytics reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
