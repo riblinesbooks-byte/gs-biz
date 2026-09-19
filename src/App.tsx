@@ -16,6 +16,7 @@ import { AddSellerLeads } from './components/buyers/AddSellerLeads';
 import { BuyerLeads } from './components/buyers/BuyerLeads';
 import { MoveToPotentialBuyer } from './components/buyers/MoveToPotentialBuyer';
 import { WaitingForApproval } from './components/buyers/WaitingForApproval';
+import { WaitingForModification } from './components/buyers/WaitingForModification';
 import { ListOfSeller } from './components/buyers/ListOfSeller';
 import { LockPotentialBuyer } from './components/buyers/LockPotentialBuyer';
 
@@ -23,6 +24,7 @@ import { LockPotentialBuyer } from './components/buyers/LockPotentialBuyer';
 import { CreateProperty } from './components/properties/CreateProperty';
 import { MoveToPotentialProperty } from './components/properties/MoveToPotentialProperty';
 import { WaitingForApprovalProperty } from './components/properties/WaitingForApprovalProperty';
+import { WaitingForModificationProperty } from './components/properties/WaitingForModificationProperty';
 import { ListOfProperty } from './components/properties/ListOfProperty';
 import { PotentialProperty } from './components/properties/PotentialProperty';
 import { LockProperty } from './components/properties/LockProperty';
@@ -34,6 +36,7 @@ import { SellerCanvas } from './components/canvas/SellerCanvas';
 import { AddCustomerLeads } from './components/customers/AddCustomerLeads';
 import { MoveToPotentialCustomer } from './components/customers/MoveToPotentialCustomer';
 import { WaitingForApprovalCustomer } from './components/customers/WaitingForApprovalCustomer';
+import { WaitingForModificationCustomer } from './components/customers/WaitingForModificationCustomer';
 import { ListOfCustomer } from './components/customers/ListOfCustomer';
 import { CustomerLeads } from './components/customers/CustomerLeads';
 import { PotentialCustomerList } from './components/customers/PotentialCustomerList';
@@ -44,12 +47,25 @@ import { CustomerCrmPage } from './components/crm/CustomerCrmPage';
 import { SellerCrmPage } from './components/crm/SellerCrmPage';
 import { PropertyCrmPage } from './components/crm/PropertyCrmPage';
 
-// Reports & Tags
+// Reports, M Reports & Tags
 import { ReportsHub } from './components/reports/ReportsHub';
+import { MReportsHub } from './components/m_reports/MReportsHub';
 import { TagManager } from './components/tags/TagManager';
 
+// Settings & Role Governance
+import { StaffCreationPage } from './components/settings/StaffCreationPage';
+import { AdminPasswordPage } from './components/settings/AdminPasswordPage';
+import { RoleBasedPowerWorksheet } from './components/settings/RoleBasedPowerWorksheet';
+
+// Auth Login Page
+import { LoginPage } from './components/auth/LoginPage';
+
 const AppContent: React.FC = () => {
-  const { currentPage } = useApp();
+  const { currentPage, isAuthenticated } = useApp();
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
@@ -67,6 +83,7 @@ const AppContent: React.FC = () => {
         {(currentPage === 'buyer_leads' || currentPage === 'buyer_add') && <AddSellerLeads />}
         {currentPage === 'buyer_move_potential' && <MoveToPotentialBuyer />}
         {currentPage === 'buyer_waiting_approval' && <WaitingForApproval />}
+        {currentPage === 'buyer_waiting_modification' && <WaitingForModification />}
         {currentPage === 'buyer_list' && <ListOfSeller />}
         {currentPage === 'buyer_lock' && <LockPotentialBuyer />}
         {(currentPage === 'crm_buyer' ||
@@ -77,6 +94,7 @@ const AppContent: React.FC = () => {
         {currentPage === 'property_create' && <CreateProperty />}
         {(currentPage === 'property_move_potential' || currentPage === 'property_potential') && <MoveToPotentialProperty />}
         {(currentPage === 'property_waiting_approval' || currentPage === 'property_lock') && <WaitingForApprovalProperty />}
+        {currentPage === 'property_waiting_modification' && <WaitingForModificationProperty />}
         {currentPage === 'property_list' && <ListOfProperty />}
         {(currentPage === 'crm_property' ||
           currentPage === 'property_crm' ||
@@ -86,6 +104,7 @@ const AppContent: React.FC = () => {
         {(currentPage === 'customer_add' || currentPage === 'customer_leads') && <AddCustomerLeads />}
         {(currentPage === 'customer_move_potential' || currentPage === 'customer_potential') && <MoveToPotentialCustomer />}
         {(currentPage === 'customer_waiting_approval' || currentPage === 'customer_lock') && <WaitingForApprovalCustomer />}
+        {currentPage === 'customer_waiting_modification' && <WaitingForModificationCustomer />}
         {currentPage === 'customer_list' && <ListOfCustomer />}
         {(currentPage === 'crm_customer' ||
           currentPage === 'customer_crm' ||
@@ -105,8 +124,21 @@ const AppContent: React.FC = () => {
             currentPage !== 'reports_crm_buyer' &&
             currentPage !== 'reports_crm_property')) && <ReportsHub />}
 
+        {/* M Reports Module */}
+        {currentPage === 'm_reports' && <MReportsHub initialTab="all" />}
+        {currentPage === 'm_reports_sellers' && <MReportsHub initialTab="sellers" />}
+        {currentPage === 'm_reports_properties' && <MReportsHub initialTab="properties" />}
+        {currentPage === 'm_reports_customers' && <MReportsHub initialTab="customers" />}
+
         {/* Tags Taxonomy Module */}
         {(currentPage === 'tags' || currentPage.startsWith('tag_')) && <TagManager />}
+
+        {/* Settings Module (Staff Creation, Admin Password, Role Based Power) */}
+        {currentPage === 'setting_staff_creation' && <StaffCreationPage />}
+        {currentPage === 'setting_admin_password' && <AdminPasswordPage />}
+        {(currentPage === 'setting_role_power' || currentPage === 'settings') && (
+          <RoleBasedPowerWorksheet />
+        )}
       </main>
 
       {/* Footer */}

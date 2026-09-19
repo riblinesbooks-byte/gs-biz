@@ -244,8 +244,8 @@ export const CrmKanbanBoard: React.FC<CrmKanbanBoardProps> = ({ moduleType, titl
                   onChange={(e) => setSelectedActivityType(e.target.value)}
                   className="w-full px-3 py-2 rounded border border-slate-300 bg-white"
                 >
-                  {activityMasters.map((m) => (
-                    <option key={m.id} value={m.name}>
+                  {activityMasters.map((m, idx) => (
+                    <option key={`kanban-act-${m.id}-${idx}`} value={m.name}>
                       {m.name} ({m.category})
                     </option>
                   ))}

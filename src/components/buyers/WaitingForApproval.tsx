@@ -20,13 +20,15 @@ export const WaitingForApproval: React.FC = () => {
   const {
     buyerLeads,
     approveAndLockBuyer,
+    sendBackBuyerForModification,
     currentRole,
-    setRole,
     setCurrentPage,
   } = useApp();
 
   const [search, setSearch] = useState('');
   const [selectedLead, setSelectedLead] = useState<BuyerLead | null>(null);
+  const [showModBox, setShowModBox] = useState(false);
+  const [modReason, setModReason] = useState('');
 
   // Leads waiting for approval
   const waitingLeads = buyerLeads.filter((b) => b.waitingForApproval && !b.isLocked);
@@ -64,32 +66,8 @@ export const WaitingForApproval: React.FC = () => {
           </p>
         </div>
 
-        {/* Role Simulator Switcher & Nav Action */}
-        <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-            <span className="text-slate-500 text-[11px] px-1 font-medium">Simulate:</span>
-            <button
-              onClick={() => setRole('admin')}
-              className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-                currentRole === 'admin'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Admin 👑
-            </button>
-            <button
-              onClick={() => setRole('staff')}
-              className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-                currentRole === 'staff'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Staff 👤
-            </button>
-          </div>
-
+        {/* Action Button */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             onClick={() => setCurrentPage('buyer_list')}
             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg shadow-xs transition flex items-center gap-1"
@@ -112,7 +90,7 @@ export const WaitingForApproval: React.FC = () => {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center gap-3 text-xs text-amber-900">
           <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0" />
           <div>
-            <span className="font-bold">Staff Access Notice:</span> You are viewing in Staff mode. Staff can view submitted seller leads, but <span className="underline font-semibold">cannot approve</span> them. Switch to Admin mode above to approve.
+            <span className="font-bold">Staff Access Notice:</span> You are viewing in Staff mode. Staff can view submitted seller leads, but <span className="underline font-semibold">cannot approve</span> them (Admin authorization required).
           </div>
         </div>
       )}
@@ -164,35 +142,17 @@ export const WaitingForApproval: React.FC = () => {
               ) : (
                 filteredLeads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-slate-50/70 transition">
-                    {/* Action Column: View and approve button */}
+                    {/* Action Column: View Details button */}
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center">
                         <button
                           onClick={() => setSelectedLead(lead)}
                           className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] border border-slate-300 transition flex items-center gap-1"
+                          title="View Details"
                         >
                           <Eye className="w-3 h-3 text-slate-500" />
                           <span>View Details</span>
                         </button>
-
-                        {currentRole === 'admin' ? (
-                          <button
-                            onClick={() => handleApprove(lead.id)}
-                            className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] shadow-xs transition flex items-center gap-1"
-                            title="Admin Approve & Lock"
-                          >
-                            <CheckCircle className="w-3 h-3 text-emerald-200" />
-                            <span>Approve</span>
-                          </button>
-                        ) : (
-                          <span
-                            className="px-2 py-1 rounded bg-slate-100 text-slate-400 font-medium text-[10px] border border-slate-200 cursor-not-allowed flex items-center gap-1"
-                            title="Only Admin can approve"
-                          >
-                            <Lock className="w-2.5 h-2.5" />
-                            <span>Admin Only</span>
-                          </span>
-                        )}
                       </div>
                     </td>
 
@@ -309,9 +269,56 @@ export const WaitingForApproval: React.FC = () => {
               </div>
 
               {currentRole === 'admin' && (
-                <p className="text-[11px] text-slate-500 italic">
-                  * By clicking &quot;Approve Seller&quot;, this record will be moved to the List of Seller (Approved List) with core details locked, and made available in Property Canvas and CRM.
-                </p>
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  {showModBox ? (
+                    <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 space-y-2">
+                      <label className="block text-[11px] font-bold text-rose-900">
+                        Admin Note / Reason for Requesting Modification:
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Survey number missing, please verify road width or get patta copy..."
+                        value={modReason}
+                        onChange={(e) => setModReason(e.target.value)}
+                        className="w-full text-xs p-2 bg-white border border-rose-300 rounded focus:ring-2 focus:ring-rose-500/20"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowModBox(false)}
+                          className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-800"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sendBackBuyerForModification(selectedLead.id, modReason);
+                            setSelectedLead(null);
+                            setShowModBox(false);
+                            setModReason('');
+                          }}
+                          className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded shadow-xs"
+                        >
+                          Confirm & Return to Staff
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] text-slate-500 italic">
+                        * By approving, core details are locked and moved to List of Seller.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowModBox(true)}
+                        className="text-xs font-semibold text-rose-700 hover:text-rose-800 underline decoration-rose-300"
+                      >
+                        Needs changes? Send back for modification
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -319,22 +326,34 @@ export const WaitingForApproval: React.FC = () => {
             <div className="border-t border-slate-200 p-4 bg-slate-50/50 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setSelectedLead(null)}
+                onClick={() => {
+                  setSelectedLead(null);
+                  setShowModBox(false);
+                }}
                 className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-100"
               >
                 Close
               </button>
 
               {currentRole === 'admin' ? (
-                <button
-                  type="button"
-                  id="btn-admin-approve-modal"
-                  onClick={() => handleApprove(selectedLead.id)}
-                  className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-xs transition"
-                >
-                  <CheckCircle className="w-4 h-4 text-emerald-200" />
-                  <span>Approve & Lock Seller</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModBox(true)}
+                    className="px-3.5 py-2 rounded-lg border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold text-xs transition"
+                  >
+                    Return for Modification
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-admin-approve-modal"
+                    onClick={() => handleApprove(selectedLead.id)}
+                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-xs transition"
+                  >
+                    <CheckCircle className="w-4 h-4 text-emerald-200" />
+                    <span>Approve & Lock Seller</span>
+                  </button>
+                </div>
               ) : (
                 <button
                   disabled

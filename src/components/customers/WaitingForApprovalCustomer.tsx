@@ -21,14 +21,16 @@ export const WaitingForApprovalCustomer: React.FC = () => {
   const {
     customerLeads,
     approveAndLockCustomer,
+    sendBackCustomerForModification,
     currentRole,
-    setRole,
     setCurrentPage,
     addToast,
   } = useApp();
 
   const [search, setSearch] = useState('');
   const [selectedCust, setSelectedCust] = useState<CustomerLead | null>(null);
+  const [showModBox, setShowModBox] = useState(false);
+  const [modReason, setModReason] = useState('');
 
   // Filter customers waiting for approval or potential customers awaiting admin sign-off
   const waitingCustomers = customerLeads.filter(
@@ -69,35 +71,6 @@ export const WaitingForApprovalCustomer: React.FC = () => {
             Customer submissions pending Admin verification. Strict role-based validation enforced.
           </p>
         </div>
-
-        {/* Quick Role Switcher for instant testing of Admin vs Staff rule */}
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <span className="text-[11px] font-semibold text-slate-600 px-2">Role:</span>
-          <button
-            id="btn-role-admin"
-            onClick={() => setRole('admin')}
-            className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
-              currentRole === 'admin'
-                ? 'bg-amber-500 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Admin</span>
-          </button>
-          <button
-            id="btn-role-staff"
-            onClick={() => setRole('staff')}
-            className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
-              currentRole === 'staff'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Staff</span>
-          </button>
-        </div>
       </div>
 
       {/* Role Enforcement Alert Banner */}
@@ -118,12 +91,6 @@ export const WaitingForApprovalCustomer: React.FC = () => {
               <strong className="font-bold">Staff Read-Only Restriction:</strong> Only Admin can approve. Staff cannot approve. You may view details, but approval controls are strictly locked.
             </div>
           </div>
-          <button
-            onClick={() => setRole('admin')}
-            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-md text-[11px] shrink-0"
-          >
-            Switch to Admin
-          </button>
         </div>
       )}
 
@@ -181,42 +148,18 @@ export const WaitingForApprovalCustomer: React.FC = () => {
               ) : (
                 filtered.map((cust) => (
                   <tr key={cust.id} className="hover:bg-slate-50/80 transition">
-                    {/* View and approve button as drawn in Page 2 */}
+                    {/* View Details button */}
                     <td className="py-2.5 px-3 whitespace-nowrap bg-slate-50/50 border-r border-slate-100">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center">
                         <button
                           id={`btn-view-approve-${cust.id}`}
                           onClick={() => setSelectedCust(cust)}
                           className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-[11px] rounded-md border border-slate-300 shadow-2xs transition flex items-center gap-1"
-                          title="View and approve button"
+                          title="View Details"
                         >
                           <Eye className="w-3 h-3 text-purple-600" />
                           <span>View & Details</span>
                         </button>
-
-                        {currentRole === 'admin' ? (
-                          <button
-                            id={`btn-approve-direct-${cust.id}`}
-                            onClick={() => handleApprove(cust)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-md shadow-2xs transition flex items-center gap-1"
-                            title="Admin Approve Customer"
-                          >
-                            <CheckCircle className="w-3 h-3" />
-                            <span>Approve</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            onClick={() =>
-                              addToast('Permission Denied: Only Admin can approve. Staff cannot approve.', 'error')
-                            }
-                            className="px-2.5 py-1 bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed font-semibold text-[11px] rounded-md flex items-center gap-1"
-                            title="Admin Only: Staff cannot approve"
-                          >
-                            <Lock className="w-3 h-3 text-slate-400" />
-                            <span>Locked</span>
-                          </button>
-                        )}
                       </div>
                     </td>
 
@@ -340,12 +283,56 @@ export const WaitingForApprovalCustomer: React.FC = () => {
               {/* Strict Admin Permission Guard Notice */}
               <div className="p-3 rounded-lg border text-[11px] flex items-center gap-2">
                 {currentRole === 'admin' ? (
-                  <>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="text-emerald-900">
-                      <strong>Admin Verified:</strong> Approving will lock the 6 core attributes (Name, Mobile No, Date, Type, Area, Address) and move customer to List of Customer.
-                    </span>
-                  </>
+                  <div className="w-full space-y-2">
+                    {showModBox ? (
+                      <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 space-y-2">
+                        <label className="block text-[11px] font-bold text-rose-900">
+                          Admin Reason for Customer Modification:
+                        </label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. Missing rental agreement, clarify budget, verify contact..."
+                          value={modReason}
+                          onChange={(e) => setModReason(e.target.value)}
+                          className="w-full text-xs p-2 bg-white border border-rose-300 rounded focus:ring-2 focus:ring-rose-500/20"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowModBox(false)}
+                            className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-800"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sendBackCustomerForModification(selectedCust.id, modReason);
+                              setSelectedCust(null);
+                              setShowModBox(false);
+                              setModReason('');
+                            }}
+                            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded shadow-xs"
+                          >
+                            Confirm & Return to Staff
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-emerald-900">
+                          <strong>Admin Verified:</strong> Approving will lock core attributes and move customer to List of Customer.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowModBox(true)}
+                          className="text-xs font-semibold text-rose-700 hover:text-rose-800 underline decoration-rose-300"
+                        >
+                          Needs changes? Send back for modification
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <>
                     <Lock className="w-4 h-4 text-rose-600 shrink-0" />

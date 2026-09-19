@@ -1,5 +1,26 @@
 export type UserRole = 'admin' | 'staff';
 
+export type RoleProfile = 'super_admin' | 'admin' | 'manager' | 'accounts' | 'staff';
+
+export type RolePowerLevel = 'edit' | 'view' | 'hide';
+
+export interface AppUser {
+  id: string;
+  username: string; // e.g., 'GS', 'MD', 'Venkatesh', 'Muthukumar'
+  fullName: string;
+  role: UserRole;
+  roleProfile: RoleProfile;
+  password: string;
+  phone?: string;
+  email?: string;
+  designation?: string;
+  department?: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export type RolePermissionsConfig = Record<RoleProfile, Record<string, RolePowerLevel>>;
+
 export type ActivityMasterType = {
   id: string;
   name: string;
@@ -55,6 +76,10 @@ export type BuyerLead = {
   religion?: string; // 'Hindu' | 'Muslim' | 'Christian' | 'Any'
   waitingForApproval?: boolean;
   waitingForApprovalAt?: string;
+  waitingForModification?: boolean;
+  modificationReason?: string;
+  modificationRequestedBy?: string;
+  modificationRequestedAt?: string;
   lockedFields?: string[];
   firstCallHandledBy: string;
   recentUpdate: string;
@@ -90,6 +115,10 @@ export type PropertyItem = {
   isPotential: boolean;
   waitingForApproval?: boolean;
   waitingForApprovalAt?: string;
+  waitingForModification?: boolean;
+  modificationReason?: string;
+  modificationRequestedBy?: string;
+  modificationRequestedAt?: string;
   isApproved: boolean;
   isLocked: boolean; // Locked by admin so staff cannot delete or edit core details
   lockedFields?: string[];
@@ -125,6 +154,10 @@ export type CustomerLead = {
   isPotential: boolean;
   waitingForApproval?: boolean;
   waitingForApprovalAt?: string;
+  waitingForModification?: boolean;
+  modificationReason?: string;
+  modificationRequestedBy?: string;
+  modificationRequestedAt?: string;
   isApproved: boolean;
   isLocked: boolean; // Locked by admin so staff cannot edit/delete
   lockedFields?: string[];
@@ -169,6 +202,7 @@ export type NavigationPage =
   | 'buyer_leads'
   | 'buyer_move_potential'
   | 'buyer_waiting_approval'
+  | 'buyer_waiting_modification'
   | 'buyer_list'
   | 'buyer_lock'
   | 'buyer_crm'
@@ -178,6 +212,7 @@ export type NavigationPage =
   | 'property_create'
   | 'property_move_potential'
   | 'property_waiting_approval'
+  | 'property_waiting_modification'
   | 'property_list'
   | 'property_potential'
   | 'property_lock'
@@ -188,6 +223,7 @@ export type NavigationPage =
   | 'customer_leads'
   | 'customer_move_potential'
   | 'customer_waiting_approval'
+  | 'customer_waiting_modification'
   | 'customer_list'
   | 'customer_potential'
   | 'customer_lock'
@@ -195,6 +231,10 @@ export type NavigationPage =
   | 'customer_crm'
   | 'crm_customer'
   | 'reports'
+  | 'm_reports'
+  | 'm_reports_sellers'
+  | 'm_reports_properties'
+  | 'm_reports_customers'
   | 'reports_buyers'
   | 'reports_leads'
   | 'reports_properties'
@@ -205,8 +245,11 @@ export type NavigationPage =
   | 'reports_property_canvas'
   | 'reports_activities_filter'
   | 'reports_enquiry_stats'
-  | 'reports_ads'
   | 'tags'
   | 'tag_enquiry_source'
   | 'tag_buyer_status'
-  | 'tag_customer_status';
+  | 'tag_customer_status'
+  | 'settings'
+  | 'setting_staff_creation'
+  | 'setting_admin_password'
+  | 'setting_role_power';

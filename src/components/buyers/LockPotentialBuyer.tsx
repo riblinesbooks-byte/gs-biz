@@ -24,7 +24,6 @@ export const LockPotentialBuyer: React.FC = () => {
     deleteBuyerLead,
     updateBuyerLead,
     currentRole,
-    setRole,
   } = useApp();
 
   const [search, setSearch] = useState('');
@@ -71,31 +70,6 @@ export const LockPotentialBuyer: React.FC = () => {
             <strong className="text-slate-900">cannot be deleted or overwritten by staff login</strong>.
           </p>
         </div>
-
-        {/* Role toggle helper */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto">
-          <span className="text-[11px] font-medium text-slate-500 px-1.5">Simulate Login:</span>
-          <button
-            onClick={() => setRole('admin')}
-            className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-              currentRole === 'admin'
-                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Admin 👑
-          </button>
-          <button
-            onClick={() => setRole('staff')}
-            className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-              currentRole === 'staff'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Staff 👤
-          </button>
-        </div>
       </div>
 
       {/* Role State Banner */}
@@ -105,7 +79,7 @@ export const LockPotentialBuyer: React.FC = () => {
           <div>
             <span className="font-bold text-sm block mb-0.5">Staff Mode Active</span>
             You are logged in with standard <strong>Staff permissions</strong>. Records marked with the gold{' '}
-            <Lock className="w-3 h-3 inline text-amber-600" /> <strong>Locked</strong> badge are protected by Admin. Staff cannot delete or un-approve these records. Switch to Admin mode in the top bar to manage lock statuses.
+            <Lock className="w-3 h-3 inline text-amber-600" /> <strong>Locked</strong> badge are protected by Admin. Staff cannot delete or un-approve these records (Admin authorization required to manage lock statuses).
           </div>
         </div>
       ) : (

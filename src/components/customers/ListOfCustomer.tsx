@@ -18,22 +18,30 @@ import {
   MapPin,
   X,
   ExternalLink,
+  Edit3,
 } from 'lucide-react';
+import { ViewEditModifyModal } from '../modals/ViewEditModifyModal';
 
 export const ListOfCustomer: React.FC = () => {
   const {
     customerLeads,
     unlockCustomer,
+    updateCustomerLead,
+    sendBackCustomerForModification,
     currentRole,
+    currentUser,
     setCurrentPage,
     addToast,
   } = useApp();
+
+  const isStaff = currentUser?.role === 'staff' || currentRole === 'staff';
 
   const [search, setSearch] = useState('');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('All');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [inspectCustomer, setInspectCustomer] = useState<CustomerLead | null>(null);
+  const [modifyingCust, setModifyingCust] = useState<CustomerLead | null>(null);
 
   // According to Document Page 2:
   // "once approved the Customer is moved to approval list, then this customer can be add in property canva and CRM, and customer is locked (details which can be locked are Name, Mobile No, Date, Property Type, Property Area and Property Address."
@@ -227,6 +235,7 @@ export const ListOfCustomer: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
+                <th className="py-3 px-4 text-indigo-900">Action</th>
                 <th className="py-3 px-4">
                   <div className="flex items-center gap-1 text-slate-800">
                     <Lock className="w-3 h-3 text-rose-500" />
@@ -270,13 +279,41 @@ export const ListOfCustomer: React.FC = () => {
             <tbody className="divide-y divide-slate-200">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-slate-500">
+                  <td colSpan={9} className="py-10 text-center text-slate-500">
                     No approved customers found in the system.
                   </td>
                 </tr>
               ) : (
                 filtered.map((cust) => (
                   <tr key={cust.id} className="hover:bg-slate-50/80 transition">
+                    {/* View & Edit & Modify button */}
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <button
+                        id={`btn-cust-mod-${cust.id}`}
+                        disabled={isStaff}
+                        onClick={() => {
+                          if (isStaff) {
+                            addToast('Staff login cannot edit or modify approved customer records. Admin access required.', 'warning');
+                            return;
+                          }
+                          setModifyingCust(cust);
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1.5 ${
+                          isStaff
+                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60 shadow-none'
+                            : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-900 border border-indigo-200 shadow-2xs cursor-pointer'
+                        }`}
+                        title={
+                          isStaff
+                            ? 'Staff login cannot edit or modify approved records (Admin access required)'
+                            : 'View, Edit, or Send for Modification'
+                        }
+                      >
+                        <Edit3 className={`w-3.5 h-3.5 ${isStaff ? 'text-slate-400' : 'text-indigo-600'}`} />
+                        <span>View &amp; Edit &amp; Modify</span>
+                      </button>
+                    </td>
+
                     {/* 1. Date (Locked) */}
                     <td className="py-3 px-4 text-slate-600 font-medium whitespace-nowrap">
                       <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
@@ -512,6 +549,26 @@ export const ListOfCustomer: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* View, Edit & Modify Modal */}
+      <ViewEditModifyModal
+        isOpen={!!modifyingCust}
+        onClose={() => setModifyingCust(null)}
+        entityType="customer"
+        record={modifyingCust}
+        onSaveEdit={(updates) => {
+          if (modifyingCust) {
+            updateCustomerLead(modifyingCust.id, updates);
+            addToast('Customer record updated successfully', 'success');
+          }
+        }}
+        onSendModification={(reason) => {
+          if (modifyingCust) {
+            sendBackCustomerForModification(modifyingCust.id, reason);
+            addToast('Customer sent back to Waiting for Modification', 'info');
+          }
+        }}
+      />
     </div>
   );
 };

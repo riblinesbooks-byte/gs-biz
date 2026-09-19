@@ -23,7 +23,6 @@ export const LockPotentialCustomer: React.FC = () => {
     deleteCustomerLead,
     updateCustomerLead,
     currentRole,
-    setRole,
   } = useApp();
 
   const [search, setSearch] = useState('');
@@ -69,31 +68,6 @@ export const LockPotentialCustomer: React.FC = () => {
             Approves and locks customer and seller records by Admin so that{' '}
             <strong className="text-slate-900">staff login cannot delete or alter crucial owner contacts</strong>.
           </p>
-        </div>
-
-        {/* Role toggle helper */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto">
-          <span className="text-[11px] font-medium text-slate-500 px-1.5">Profile:</span>
-          <button
-            onClick={() => setRole('admin')}
-            className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-              currentRole === 'admin'
-                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Admin 👑
-          </button>
-          <button
-            onClick={() => setRole('staff')}
-            className={`px-2.5 py-1 text-xs rounded font-semibold transition ${
-              currentRole === 'staff'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Staff 👤
-          </button>
         </div>
       </div>
 

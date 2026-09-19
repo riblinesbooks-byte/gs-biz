@@ -20,6 +20,10 @@ import {
   Layers,
   PhoneCall,
   Flame,
+  Settings,
+  Key,
+  User,
+  LogOut,
 } from 'lucide-react';
 
 interface DropdownItem {
@@ -40,13 +44,15 @@ export const Navbar: React.FC = () => {
     currentPage,
     setCurrentPage,
     currentRole,
-    setRole,
     searchQuery,
     setSearchQuery,
     buyerLeads,
     properties,
     customerLeads,
     resetAllData,
+    currentUser,
+    logoutUser,
+    hasModulePower,
   } = useApp();
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -55,14 +61,21 @@ export const Navbar: React.FC = () => {
   // Counts for badges
   const potentialBuyersCount = buyerLeads.filter((b) => b.isPotential && !b.isLocked).length;
   const waitingApprovalCount = buyerLeads.filter((b) => b.waitingForApproval && !b.isLocked).length;
+  const waitingBuyerModificationCount = buyerLeads.filter((b) => b.waitingForModification).length;
   const approvedSellersCount = buyerLeads.filter((b) => b.isLocked || b.potentialApproved).length;
+
   const potentialPropsCount = properties.filter((p) => p.isPotential && !p.isLocked).length;
   const waitingPropertyApprovalCount = properties.filter((p) => (p.waitingForApproval || (p.isPotential && !p.isApproved)) && !p.isLocked).length;
+  const waitingPropertyModificationCount = properties.filter((p) => p.waitingForModification).length;
   const approvedPropertyCount = properties.filter((p) => p.isLocked || p.isApproved).length;
   const lockedPropsCount = properties.filter((p) => p.isLocked).length;
+
   const potentialCustCount = customerLeads.filter((c) => c.isPotential && !c.isLocked).length;
   const waitingCustomerApprovalCount = customerLeads.filter((c) => (c.waitingForApproval || (c.isPotential && !c.isApproved)) && !c.isLocked).length;
+  const waitingCustomerModificationCount = customerLeads.filter((c) => c.waitingForModification).length;
   const approvedCustomerCount = customerLeads.filter((c) => c.isLocked).length;
+
+  const totalMReportsCount = waitingBuyerModificationCount + waitingPropertyModificationCount + waitingCustomerModificationCount;
 
   const menuSections: MenuSection[] = [
     {
@@ -72,6 +85,7 @@ export const Navbar: React.FC = () => {
         { id: 'buyer_add', label: 'Add Seller Leads' },
         { id: 'buyer_move_potential', label: 'Move to Potential Seller' },
         { id: 'buyer_waiting_approval', label: 'Waiting for approval', badge: waitingApprovalCount },
+        { id: 'buyer_waiting_modification', label: 'Waiting for modification', badge: waitingBuyerModificationCount },
         { id: 'buyer_list', label: 'List of Seller', badge: approvedSellersCount },
       ],
     },
@@ -82,6 +96,7 @@ export const Navbar: React.FC = () => {
         { id: 'property_create', label: 'Create Property' },
         { id: 'property_move_potential', label: 'Move to Potential Property' },
         { id: 'property_waiting_approval', label: 'Waiting for approval Property', badge: waitingPropertyApprovalCount },
+        { id: 'property_waiting_modification', label: 'Waiting for modification', badge: waitingPropertyModificationCount },
         { id: 'property_list', label: 'List of Property', badge: approvedPropertyCount },
       ],
     },
@@ -92,6 +107,7 @@ export const Navbar: React.FC = () => {
         { id: 'customer_add', label: 'Add Customer Leads' },
         { id: 'customer_move_potential', label: 'Move to Potential Customer' },
         { id: 'customer_waiting_approval', label: 'Waiting for approval Customer', badge: waitingCustomerApprovalCount },
+        { id: 'customer_waiting_modification', label: 'Waiting for modification', badge: waitingCustomerModificationCount },
         { id: 'customer_list', label: 'List of Customer', badge: approvedCustomerCount },
       ],
     },
@@ -122,7 +138,16 @@ export const Navbar: React.FC = () => {
         { id: 'reports_properties', label: 'List of Property' },
         { id: 'reports_activities_filter', label: 'Activities Filter' },
         { id: 'reports_enquiry_stats', label: 'Enquiry Statistics' },
-        { id: 'reports_ads', label: 'Weekly Advertisement Report' },
+      ],
+    },
+    {
+      title: 'M Reports',
+      icon: FileSpreadsheet,
+      items: [
+        { id: 'm_reports', label: 'Overview & Audit', badge: totalMReportsCount },
+        { id: 'm_reports_sellers', label: 'List of Sellers', badge: waitingBuyerModificationCount },
+        { id: 'm_reports_properties', label: 'List of Property', badge: waitingPropertyModificationCount },
+        { id: 'm_reports_customers', label: 'List of Customer', badge: waitingCustomerModificationCount },
       ],
     },
     {
@@ -133,6 +158,15 @@ export const Navbar: React.FC = () => {
         { id: 'tag_enquiry_source', label: 'Enquiry Source' },
         { id: 'tag_buyer_status', label: 'Seller Status' },
         { id: 'tag_customer_status', label: 'Customer Status' },
+      ],
+    },
+    {
+      title: 'Setting',
+      icon: Settings,
+      items: [
+        { id: 'setting_staff_creation', label: 'Staff Creation' },
+        { id: 'setting_admin_password', label: 'Admin Password' },
+        { id: 'setting_role_power', label: 'Role Based Power' },
       ],
     },
   ];
@@ -207,37 +241,27 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Controls: Role Switcher & Sample Data Reset */}
-          <div className="flex items-center space-x-2 shrink-0">
-            {/* Role Simulation Switcher */}
-            <div className="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 text-xs">
-              <button
-                id="role-admin-toggle"
-                onClick={() => setRole('admin')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition font-medium ${
-                  currentRole === 'admin'
-                    ? 'bg-amber-500 text-slate-950 shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Admin Login: Can approve, lock, unlock and delete all records"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
-              <button
-                id="role-staff-toggle"
-                onClick={() => setRole('staff')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition font-medium ${
-                  currentRole === 'staff'
-                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Staff Login: Restricted. Cannot delete or alter Approved/Locked potential records"
-              >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                <span>Staff</span>
-              </button>
-            </div>
+          {/* Right Controls: User Name with Role (Text Only), Logout Button & Sample Data Reset */}
+          <div className="flex items-center space-x-3 shrink-0">
+            {/* User Name & Role - Plain text without dropdown */}
+            <span
+              id="navbar-logged-in-username"
+              className="text-sm font-bold text-white tracking-wide select-none whitespace-nowrap"
+            >
+              {currentUser?.username || 'User'} ({(currentUser?.role || currentRole) === 'admin' ? 'Admin' : 'Staff'})
+            </span>
+
+            {/* Direct Logout Button */}
+            <button
+              id="btn-navbar-logout"
+              type="button"
+              onClick={logoutUser}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-300 hover:text-white bg-rose-500/15 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-600 transition shadow-xs cursor-pointer"
+              title="Sign Out / Logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
 
             {/* Reset mock data button */}
             <button
@@ -272,10 +296,21 @@ export const Navbar: React.FC = () => {
 
           {/* Dynamic Dropdown Sections */}
           {menuSections.map((section, index) => {
-            const isSectionActive = section.items.some((item) => item.id === currentPage);
+            const isUserAdmin = (currentUser?.role || currentRole) === 'admin';
+            const visibleItems = section.items.filter((item) => {
+              if (isUserAdmin) return true;
+              return hasModulePower(item.id) !== 'hide';
+            });
+
+            if (visibleItems.length === 0) {
+              return null;
+            }
+
+            const isSectionActive = visibleItems.some((item) => item.id === currentPage);
             const isOpen = openDropdown === section.title;
             const Icon = section.icon;
             const isRightEdge = index >= menuSections.length - 2;
+            const isMReports = section.title === 'M Reports';
 
             return (
               <div key={section.title} className="relative shrink-0">
@@ -283,15 +318,23 @@ export const Navbar: React.FC = () => {
                   id={`nav-menu-${section.title.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={() => setOpenDropdown(isOpen ? null : section.title)}
                   className={`px-2.5 sm:px-3 py-1.5 rounded-md flex items-center gap-1.5 transition whitespace-nowrap ${
-                    isSectionActive
+                    isMReports
+                      ? 'bg-slate-800/95 text-amber-400 font-bold border border-slate-700/90 shadow-2xs hover:bg-slate-800 hover:text-amber-300'
+                      : isSectionActive
                       ? 'bg-slate-800 text-amber-400 font-semibold'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 opacity-80" />
+                  <Icon className={`w-3.5 h-3.5 ${isMReports ? 'text-amber-400' : 'opacity-80'}`} />
                   <span>{section.title}</span>
                   <ChevronDown
-                    className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180 text-amber-400' : 'text-slate-500'}`}
+                    className={`w-3 h-3 transition-transform ${
+                      isOpen
+                        ? 'rotate-180 text-amber-400'
+                        : isMReports
+                        ? 'text-amber-400/80'
+                        : 'text-slate-500'
+                    }`}
                   />
                 </button>
 
@@ -305,7 +348,7 @@ export const Navbar: React.FC = () => {
                     <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1">
                       {section.title}
                     </div>
-                    {section.items.map((subItem) => {
+                    {visibleItems.map((subItem) => {
                       const isSubActive = currentPage === subItem.id;
                       return (
                         <button

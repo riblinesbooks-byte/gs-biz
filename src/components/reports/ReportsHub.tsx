@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { WeeklyAdItem } from '../../types';
 import {
   FileText,
   BarChart3,
@@ -12,7 +11,6 @@ import {
   Building,
   CheckCircle2,
   TrendingUp,
-  Megaphone,
   Printer,
   Search,
   Layers,
@@ -25,7 +23,6 @@ export const ReportsHub: React.FC = () => {
     customerLeads,
     activityLogs,
     activityMasters,
-    weeklyAds,
     currentPage,
     setCurrentPage,
   } = useApp();
@@ -39,7 +36,6 @@ export const ReportsHub: React.FC = () => {
     | 'crm_customer'
     | 'activities_filter'
     | 'enquiry_stats'
-    | 'weekly_ads'
   >('buyer_list');
 
   useEffect(() => {
@@ -51,7 +47,6 @@ export const ReportsHub: React.FC = () => {
     else if (currentPage === 'reports_crm_customer') setActiveReportTab('crm_customer');
     else if (currentPage === 'reports_activities_filter') setActiveReportTab('activities_filter');
     else if (currentPage === 'reports_enquiry_stats') setActiveReportTab('enquiry_stats');
-    else if (currentPage === 'reports_ads') setActiveReportTab('weekly_ads');
   }, [currentPage]);
 
   // Activity filter states
@@ -122,7 +117,7 @@ export const ReportsHub: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Complete management reporting suite for Seller Lists, Property Inventories, CRM Histories, Activity Filters, Ad Performances, and Enquiry Statistics.
+            Complete management reporting suite for Seller Lists, Property Inventories, CRM Histories, Activity Filters, and Enquiry Statistics.
           </p>
         </div>
 
@@ -216,16 +211,6 @@ export const ReportsHub: React.FC = () => {
           }`}
         >
           Activities Filter
-        </button>
-        <button
-          onClick={() => setActiveReportTab('weekly_ads')}
-          className={`px-3 py-2 border-b-2 whitespace-nowrap transition ${
-            activeReportTab === 'weekly_ads'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          Weekly Ads
         </button>
       </div>
 
@@ -628,8 +613,8 @@ export const ReportsHub: React.FC = () => {
                 className="w-full px-2.5 py-1.5 rounded border border-slate-300 bg-white"
               >
                 <option value="All">All Activities</option>
-                {activityMasters.map((m) => (
-                  <option key={m.id} value={m.name}>
+                {activityMasters.map((m, idx) => (
+                  <option key={`report-act-${m.id}-${idx}`} value={m.name}>
                     {m.name}
                   </option>
                 ))}
@@ -687,56 +672,6 @@ export const ReportsHub: React.FC = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* TAB CONTENT: 9. Weekly Ads */}
-      {activeReportTab === 'weekly_ads' && (
-        <div className="space-y-4 animate-in fade-in">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Weekly Property Advertisements Tracking</h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Track ad campaigns in Property Plus, Facebook, Nanganallur Voice, Times of India
-              </p>
-            </div>
-            <button
-              onClick={() => exportTableToCSV(weeklyAds, 'Weekly_Ads_Performance')}
-              className="px-3 py-1.5 bg-slate-900 text-white rounded text-xs font-semibold flex items-center gap-1"
-            >
-              <Download className="w-3.5 h-3.5" /> Export CSV
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {weeklyAds.map((ad: WeeklyAdItem) => (
-              <div key={ad.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[10px]">
-                    {ad.newspaperOrPortal}
-                  </span>
-                  <span className="font-mono text-slate-400 text-[11px]">{ad.weekStartDate}</span>
-                </div>
-
-                <h4 className="font-bold text-slate-900 text-sm mt-1">{ad.propertyTitle}</h4>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-slate-500">Cost:</span>
-                  <span className="font-bold text-slate-800">{ad.cost}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Enquiries Generated:</span>
-                  <span className="font-bold text-emerald-700">{ad.enquiriesGenerated} Leads</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Site Visits Booked:</span>
-                  <span className="font-semibold text-blue-700">{ad.siteVisitsBooked} Visits</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}

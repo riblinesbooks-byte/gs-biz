@@ -388,9 +388,9 @@ export const CreateActivitiesMaster: React.FC = () => {
 
       {/* Grid of Activity Masters */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredMasters.map((act) => (
+        {filteredMasters.map((act, index) => (
           <div
-            key={act.id}
+            key={`act-master-${act.id}-${index}`}
             id={`act-card-${act.id}`}
             className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between"
           >

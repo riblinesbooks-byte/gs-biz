@@ -164,7 +164,7 @@ export const PropertyCrmPage: React.FC = () => {
 
   // Dynamic lookup for any activity name (handles custom added master activities)
   const getPropertyDays = (propertyId: string, actName: string): number => {
-    const metrics = getPropertyMetrics(propertyId) as Record<string, number>;
+    const metrics = getPropertyMetrics(propertyId) as unknown as Record<string, number>;
     const normalizedKey = actName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
     // Check known standard mappings
@@ -220,7 +220,7 @@ export const PropertyCrmPage: React.FC = () => {
       updateMetric(propertyId, 'buyerSellerMeeting', value);
     } else {
       setMetricsStore((prev) => {
-        const curr = prev[propertyId] || (getPropertyMetrics(propertyId) as Record<string, number>);
+        const curr = prev[propertyId] || (getPropertyMetrics(propertyId) as unknown as Record<string, number>);
         return {
           ...prev,
           [propertyId]: {
@@ -498,58 +498,35 @@ export const PropertyCrmPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Middle: Horizontal Activity Step Blocks (Exact Document Match) */}
+                    {/* Middle: Horizontal Activity Step Blocks (Dynamic from Tag Master) */}
                     <div className="flex-1 overflow-x-auto pb-1 lg:pb-0">
                       <div className="flex items-center gap-1.5 sm:gap-2 min-w-[560px]">
-                        {/* 1. Update on Job (Yellow Theme) */}
-                        <div className="flex-1 text-center">
-                          <div className="border border-amber-300/80 bg-amber-50 text-amber-950 rounded-t-md py-1 text-xs font-bold shadow-xs">
-                            {metrics.updateOnJob}
-                          </div>
-                          <div className="bg-amber-200 border-x border-b border-amber-300 text-amber-950 font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs">
-                            Update on Job
-                          </div>
-                        </div>
+                        {currentActivities.slice(0, 5).map((act, idx) => {
+                          const days = getPropertyDays(prop.id, act.name);
+                          const isYellow = idx < 2;
+                          const isSky = idx >= 2 && idx < 4;
+                          const bgTop = isYellow
+                            ? 'bg-amber-50 text-amber-950 border-amber-300/80'
+                            : isSky
+                            ? 'bg-sky-50 text-sky-950 border-sky-300/80'
+                            : 'bg-orange-50 text-orange-950 border-orange-300/80';
+                          const bgBottom = isYellow
+                            ? 'bg-amber-200 text-amber-950 border-amber-300'
+                            : isSky
+                            ? 'bg-sky-200 text-sky-950 border-sky-300'
+                            : 'bg-orange-200 text-orange-950 border-orange-300';
 
-                        {/* 2. Staff - Mobile Call (Yellow Theme) */}
-                        <div className="flex-1 text-center">
-                          <div className="border border-amber-300/80 bg-amber-50 text-amber-950 rounded-t-md py-1 text-xs font-bold shadow-xs">
-                            {metrics.staffMobileCall}
-                          </div>
-                          <div className="bg-amber-200 border-x border-b border-amber-300 text-amber-950 font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs">
-                            Staff - Mobile Call
-                          </div>
-                        </div>
-
-                        {/* 3. Staff 121 (Soft Sky Blue Theme) */}
-                        <div className="flex-1 text-center">
-                          <div className="border border-sky-300/80 bg-sky-50 text-sky-950 rounded-t-md py-1 text-xs font-bold shadow-xs">
-                            {metrics.staff121}
-                          </div>
-                          <div className="bg-sky-200 border-x border-b border-sky-300 text-sky-950 font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs">
-                            Staff 121
-                          </div>
-                        </div>
-
-                        {/* 4. MD - Mobile Call (Soft Sky Blue Theme) */}
-                        <div className="flex-1 text-center">
-                          <div className="border border-sky-300/80 bg-sky-50 text-sky-950 rounded-t-md py-1 text-xs font-bold shadow-xs">
-                            {metrics.mdMobileCall}
-                          </div>
-                          <div className="bg-sky-200 border-x border-b border-sky-300 text-sky-950 font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs">
-                            MD - Mobile Call
-                          </div>
-                        </div>
-
-                        {/* 5. MD 121 (Soft Orange / Coral Theme) */}
-                        <div className="flex-1 text-center">
-                          <div className="border border-orange-300/80 bg-orange-50 text-orange-950 rounded-t-md py-1 text-xs font-bold shadow-xs">
-                            {metrics.md121}
-                          </div>
-                          <div className="bg-orange-200 border-x border-b border-orange-300 text-orange-950 font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs">
-                            MD 121
-                          </div>
-                        </div>
+                          return (
+                            <div key={`prop-top-act-${act.id}-${idx}`} className="flex-1 text-center">
+                              <div className={`border rounded-t-md py-1 text-xs font-bold shadow-xs ${bgTop}`}>
+                                {days}
+                              </div>
+                              <div className={`border-x border-b font-bold text-[11px] sm:text-xs py-1.5 px-2 rounded-b-md whitespace-nowrap shadow-xs ${bgBottom}`}>
+                                {act.name}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -725,16 +702,20 @@ export const PropertyCrmPage: React.FC = () => {
                         onChange={(e) => setNewActivityType(e.target.value)}
                         className="w-full text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                       >
-                        <option value="Update on Job">Update on Job</option>
-                        <option value="Staff - Mobile Call">Staff - Mobile Call</option>
-                        <option value="Staff - 121">Staff - 121</option>
-                        <option value="MD - Mobile Call">MD - Mobile Call</option>
-                        <option value="MD - 121">MD - 121</option>
-                        <option value="Property Document Collection">Property Document Collection</option>
-                        <option value="Property R/D">Property R/D</option>
-                        <option value="Property Photo and Video">Property Photo and Video</option>
-                        <option value="Buyer and Seller meeting">Buyer and Seller meeting</option>
-                        <option value="Direct Note / Review">Direct Note / Review</option>
+                        <optgroup label="Current Activites (Pipeline & Days Elapsed)">
+                          {currentActivities.map((act, idx) => (
+                            <option key={`prop-opt-curr-${act.id}-${idx}`} value={act.name}>
+                              {act.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Pending Activites (Field & Document Tasks)">
+                          {pendingActivities.map((act, idx) => (
+                            <option key={`prop-opt-pend-${act.id}-${idx}`} value={act.name}>
+                              {act.name}
+                            </option>
+                          ))}
+                        </optgroup>
                       </select>
                     </div>
 
@@ -787,13 +768,23 @@ export const PropertyCrmPage: React.FC = () => {
 
             {/* RIGHT COLUMN: Two Yellow-Header Activity Matrix Tables (Approx 5 cols) */}
             <div className="lg:col-span-5 space-y-6">
-              {/* TABLE 1: Current Activites List Details */}
+              {/* TABLE 1: Current Activites List Details (Dynamic from Tag Master) */}
               <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="bg-yellow-300 border-b border-slate-300 text-slate-950">
                       <th className="py-2 px-3 font-bold text-left border-r border-slate-300">
-                        Current Activites List Details
+                        <div className="flex items-center justify-between">
+                          <span>Current Activites List Details</span>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentPage('activities_master')}
+                            className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition flex items-center gap-1 font-sans"
+                            title="Open Create Activities Master in Tag Menu"
+                          >
+                            <Plus className="w-3 h-3 text-amber-400" /> Manage in Tag
+                          </button>
+                        </div>
                       </th>
                       <th className="py-2 px-2 font-bold text-center w-36">
                         Nos Days <span className="block text-[10px] font-normal text-slate-800">(Passed after activities)</span>
@@ -801,186 +792,69 @@ export const PropertyCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {/* Row 1: Update on Job */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Update on Job
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).updateOnJob}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateMetric(
-                                selectedProperty.id,
-                                'updateOnJob',
-                                getPropertyMetrics(selectedProperty.id).updateOnJob + 1
-                              )
-                            }
-                            className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
-                            title="Add 1 day"
-                          >
-                            +1d
-                          </button>
-                          <button
-                            onClick={() => updateMetric(selectedProperty.id, 'updateOnJob', 0)}
-                            className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                            title="Reset to 0 (Done Today)"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 2: Staff - Mobile Call */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Staff - Mobile Call
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).staffMobileCall}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateMetric(
-                                selectedProperty.id,
-                                'staffMobileCall',
-                                getPropertyMetrics(selectedProperty.id).staffMobileCall + 1
-                              )
-                            }
-                            className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
-                            title="Add 1 day"
-                          >
-                            +1d
-                          </button>
-                          <button
-                            onClick={() => updateMetric(selectedProperty.id, 'staffMobileCall', 0)}
-                            className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                            title="Reset to 0 (Done Today)"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 3: Staff - 121 */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Staff - 121
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).staff121}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateMetric(
-                                selectedProperty.id,
-                                'staff121',
-                                getPropertyMetrics(selectedProperty.id).staff121 + 1
-                              )
-                            }
-                            className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
-                            title="Add 1 day"
-                          >
-                            +1d
-                          </button>
-                          <button
-                            onClick={() => updateMetric(selectedProperty.id, 'staff121', 0)}
-                            className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                            title="Reset to 0 (Done Today)"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 4: MD - Mobile Call */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        MD - Mobile Call
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).mdMobileCall}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateMetric(
-                                selectedProperty.id,
-                                'mdMobileCall',
-                                getPropertyMetrics(selectedProperty.id).mdMobileCall + 1
-                              )
-                            }
-                            className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
-                            title="Add 1 day"
-                          >
-                            +1d
-                          </button>
-                          <button
-                            onClick={() => updateMetric(selectedProperty.id, 'mdMobileCall', 0)}
-                            className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                            title="Reset to 0 (Done Today)"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 5: MD - 121 */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        MD - 121
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).md121}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateMetric(
-                                selectedProperty.id,
-                                'md121',
-                                getPropertyMetrics(selectedProperty.id).md121 + 1
-                              )
-                            }
-                            className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
-                            title="Add 1 day"
-                          >
-                            +1d
-                          </button>
-                          <button
-                            onClick={() => updateMetric(selectedProperty.id, 'md121', 0)}
-                            className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                            title="Reset to 0 (Done Today)"
-                          >
-                            Today
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    {currentActivities.map((act, idx) => {
+                      const days = getPropertyDays(selectedProperty.id, act.name);
+                      return (
+                        <tr key={`prop-tbl1-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
+                          <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: act.color || '#eab308' }}
+                                />
+                                <span>{act.name}</span>
+                              </div>
+                              {act.category && (
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 font-normal">
+                                  {act.category}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <span className="font-bold text-slate-900 text-sm">{days}</span>
+                              <button
+                                onClick={() => updatePropertyMetric(selectedProperty.id, act.name, days + 1)}
+                                className="text-[10px] px-1 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+                                title="Add 1 day"
+                              >
+                                +1d
+                              </button>
+                              <button
+                                onClick={() => updatePropertyMetric(selectedProperty.id, act.name, 0)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 font-medium"
+                                title="Reset to 0 (Done Today)"
+                              >
+                                Today
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              {/* TABLE 2: Pending Activites */}
+              {/* TABLE 2: Pending Activites (Dynamic from Tag Master) */}
               <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="bg-yellow-300 border-b border-slate-300 text-slate-950">
                       <th className="py-2 px-3 font-bold text-left border-r border-slate-300">
-                        Pending Activites
+                        <div className="flex items-center justify-between">
+                          <span>Pending Activites</span>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentPage('activities_master')}
+                            className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition flex items-center gap-1 font-sans"
+                            title="Open Create Activities Master in Tag Menu"
+                          >
+                            <Plus className="w-3 h-3 text-amber-400" /> Manage in Tag
+                          </button>
+                        </div>
                       </th>
                       <th className="py-2 px-2 font-bold text-center w-36">
                         Nos Days <span className="block text-[10px] font-normal text-slate-800">(Passed after activities)</span>
@@ -988,149 +862,56 @@ export const PropertyCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {/* Row 1: Property Document Collection */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Property Document Collection
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).propertyDocCollection}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const newLog: Omit<ActivityLog, 'id'> = {
-                                date: new Date().toISOString().split('T')[0],
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                activityTypeId: 'act-doc',
-                                activityTypeName: 'Property Document Collection',
-                                entityType: 'property',
-                                entityId: selectedProperty.id,
-                                entityName: `${selectedProperty.propertyCode} - ${selectedProperty.title}`,
-                                notes: 'Collected parent deeds, Patta, and survey sketches for verification.',
-                                handledBy: 'Staff',
-                                status: 'Completed',
-                              };
-                              addActivityLog(newLog);
-                              updateMetric(selectedProperty.id, 'propertyDocCollection', 0);
-                            }}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold"
-                            title="Log document collection completed today"
-                          >
-                            Mark Done
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 2: Property R/D */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Property R/D
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).propertyRd}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const newLog: Omit<ActivityLog, 'id'> = {
-                                date: new Date().toISOString().split('T')[0],
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                activityTypeId: 'act-rd',
-                                activityTypeName: 'Property R/D',
-                                entityType: 'property',
-                                entityId: selectedProperty.id,
-                                entityName: `${selectedProperty.propertyCode} - ${selectedProperty.title}`,
-                                notes: 'Conducted field research, road measurement, and guideline value checks.',
-                                handledBy: 'Staff',
-                                status: 'Completed',
-                              };
-                              addActivityLog(newLog);
-                              updateMetric(selectedProperty.id, 'propertyRd', 0);
-                            }}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold"
-                            title="Log Property R/D completed today"
-                          >
-                            Mark Done
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 3: Property Photo and Video */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Property Photo and Video
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).propertyPhotoVideo}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const newLog: Omit<ActivityLog, 'id'> = {
-                                date: new Date().toISOString().split('T')[0],
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                activityTypeId: 'act-photo',
-                                activityTypeName: 'Property Photo and Video',
-                                entityType: 'property',
-                                entityId: selectedProperty.id,
-                                entityName: `${selectedProperty.propertyCode} - ${selectedProperty.title}`,
-                                notes: 'Captured 4K property walkthrough video and high-resolution marketing photos.',
-                                handledBy: 'Staff',
-                                status: 'Completed',
-                              };
-                              addActivityLog(newLog);
-                              updateMetric(selectedProperty.id, 'propertyPhotoVideo', 0);
-                            }}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold"
-                            title="Log photos and videos completed today"
-                          >
-                            Mark Done
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Row 4: Buyer and Seller meeting */}
-                    <tr className="hover:bg-amber-50/50 transition-colors">
-                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
-                        Buyer and Seller meeting
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {getPropertyMetrics(selectedProperty.id).buyerSellerMeeting}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const newLog: Omit<ActivityLog, 'id'> = {
-                                date: new Date().toISOString().split('T')[0],
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                activityTypeId: 'act-meeting',
-                                activityTypeName: 'Buyer and Seller meeting',
-                                entityType: 'property',
-                                entityId: selectedProperty.id,
-                                entityName: `${selectedProperty.propertyCode} - ${selectedProperty.title}`,
-                                notes: 'Conducted on-site walkthrough and direct deal discussion between buyer and owner.',
-                                handledBy: 'Staff',
-                                status: 'Completed',
-                              };
-                              addActivityLog(newLog);
-                              updateMetric(selectedProperty.id, 'buyerSellerMeeting', 0);
-                            }}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold"
-                            title="Log Buyer and Seller meeting completed today"
-                          >
-                            Mark Done
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    {pendingActivities.map((act, idx) => {
+                      const days = getPropertyDays(selectedProperty.id, act.name);
+                      return (
+                        <tr key={`prop-tbl2-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
+                          <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: act.color || '#10b981' }}
+                                />
+                                <span>{act.name}</span>
+                              </div>
+                              {act.category && (
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 font-normal">
+                                  {act.category}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <span className="font-bold text-slate-900 text-sm">{days}</span>
+                              <button
+                                onClick={() => {
+                                  const newLog: Omit<ActivityLog, 'id'> = {
+                                    date: new Date().toISOString().split('T')[0],
+                                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                    activityTypeId: act.id,
+                                    activityTypeName: act.name,
+                                    entityType: 'property',
+                                    entityId: selectedProperty.id,
+                                    entityName: `${selectedProperty.propertyCode} - ${selectedProperty.title}`,
+                                    notes: `Completed ${act.name} for property.`,
+                                    handledBy: currentRole === 'admin' ? 'MD' : 'Staff',
+                                    status: 'Completed',
+                                  };
+                                  addActivityLog(newLog);
+                                  updatePropertyMetric(selectedProperty.id, act.name, 0);
+                                }}
+                                className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold"
+                                title="Log activity completed today & reset days"
+                              >
+                                Mark Done
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

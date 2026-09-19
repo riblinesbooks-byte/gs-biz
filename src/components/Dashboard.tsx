@@ -900,8 +900,8 @@ export const Dashboard: React.FC = () => {
                             className="w-full h-full px-2.5 py-1.5 bg-transparent text-xs text-slate-800 font-medium outline-none focus:bg-blue-50 cursor-pointer"
                           >
                             {activityMasters.length > 0 ? (
-                              activityMasters.map((a) => (
-                                <option key={a.id} value={a.name}>
+                              activityMasters.map((a, idx) => (
+                                <option key={`dash-act-${a.id}-${idx}`} value={a.name}>
                                   {a.name}
                                 </option>
                               ))

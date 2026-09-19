@@ -151,7 +151,7 @@ export const SellerCrmPage: React.FC = () => {
 
   // Dynamic lookup for any activity name (handles custom added master activities)
   const getSellerDays = (sellerId: string, actName: string): number => {
-    const metrics = getSellerMetrics(sellerId) as Record<string, number>;
+    const metrics = getSellerMetrics(sellerId) as unknown as Record<string, number>;
     const normalizedKey = actName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
     // Check known standard mappings
@@ -207,7 +207,7 @@ export const SellerCrmPage: React.FC = () => {
       updateMetric(sellerId, 'buyerSellerMeeting', value);
     } else {
       setMetricsStore((prev) => {
-        const curr = prev[sellerId] || (getSellerMetrics(sellerId) as Record<string, number>);
+        const curr = prev[sellerId] || (getSellerMetrics(sellerId) as unknown as Record<string, number>);
         return {
           ...prev,
           [sellerId]: {
@@ -500,7 +500,7 @@ export const SellerCrmPage: React.FC = () => {
                             : 'bg-orange-200 text-orange-950 border-orange-300';
 
                           return (
-                            <div key={act.id} className="flex-1 text-center">
+                            <div key={`seller-top-act-${act.id}-${idx}`} className="flex-1 text-center">
                               <div className={`border rounded-t-md py-1 text-xs font-bold shadow-xs ${bgTop}`}>
                                 {days}
                               </div>
@@ -678,15 +678,15 @@ export const SellerCrmPage: React.FC = () => {
                         className="w-full text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                       >
                         <optgroup label="Current Activites (Pipeline & Days Elapsed)">
-                          {currentActivities.map((act) => (
-                            <option key={act.id} value={act.name}>
+                          {currentActivities.map((act, idx) => (
+                            <option key={`seller-opt-curr-${act.id}-${idx}`} value={act.name}>
                               {act.name}
                             </option>
                           ))}
                         </optgroup>
                         <optgroup label="Pending Activites (Field & Document Tasks)">
-                          {pendingActivities.map((act) => (
-                            <option key={act.id} value={act.name}>
+                          {pendingActivities.map((act, idx) => (
+                            <option key={`seller-opt-pend-${act.id}-${idx}`} value={act.name}>
                               {act.name}
                             </option>
                           ))}
@@ -767,10 +767,10 @@ export const SellerCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {currentActivities.map((act) => {
+                    {currentActivities.map((act, idx) => {
                       const days = getSellerDays(selectedSeller.id, act.name);
                       return (
-                        <tr key={act.id} className="hover:bg-amber-50/50 transition-colors">
+                        <tr key={`seller-tbl1-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
                           <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -837,10 +837,10 @@ export const SellerCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {pendingActivities.map((act) => {
+                    {pendingActivities.map((act, idx) => {
                       const days = getSellerDays(selectedSeller.id, act.name);
                       return (
-                        <tr key={act.id} className="hover:bg-amber-50/50 transition-colors">
+                        <tr key={`seller-tbl2-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
                           <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">

@@ -415,8 +415,6 @@ export const CustomerCrmPage: React.FC = () => {
               </div>
             ) : (
               filteredCustomers.map((cust) => {
-                const metrics = getCustomerMetrics(cust.id);
-
                 return (
                   <div
                     key={cust.id}
@@ -471,7 +469,7 @@ export const CustomerCrmPage: React.FC = () => {
                             : 'bg-orange-200 text-orange-950 border-orange-300';
 
                           return (
-                            <div key={act.id} className="flex-1 text-center">
+                            <div key={`cust-top-act-${act.id}-${idx}`} className="flex-1 text-center">
                               <div className={`border rounded-t-md py-1 text-xs font-bold shadow-xs ${bgTop}`}>
                                 {days}
                               </div>
@@ -649,15 +647,15 @@ export const CustomerCrmPage: React.FC = () => {
                         className="w-full text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                       >
                         <optgroup label="Current Activites (Pipeline & Days Elapsed)">
-                          {currentActivities.map((act) => (
-                            <option key={act.id} value={act.name}>
+                          {currentActivities.map((act, idx) => (
+                            <option key={`cust-opt-curr-${act.id}-${idx}`} value={act.name}>
                               {act.name}
                             </option>
                           ))}
                         </optgroup>
                         <optgroup label="Pending Activites (Field & Document Tasks)">
-                          {pendingActivities.map((act) => (
-                            <option key={act.id} value={act.name}>
+                          {pendingActivities.map((act, idx) => (
+                            <option key={`cust-opt-pend-${act.id}-${idx}`} value={act.name}>
                               {act.name}
                             </option>
                           ))}
@@ -738,10 +736,10 @@ export const CustomerCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {currentActivities.map((act) => {
+                    {currentActivities.map((act, idx) => {
                       const days = getCustomerDays(selectedCustomer.id, act.name);
                       return (
-                        <tr key={act.id} className="hover:bg-amber-50/50 transition-colors">
+                        <tr key={`cust-tbl1-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
                           <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -808,10 +806,10 @@ export const CustomerCrmPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {pendingActivities.map((act) => {
+                    {pendingActivities.map((act, idx) => {
                       const days = getCustomerDays(selectedCustomer.id, act.name);
                       return (
-                        <tr key={act.id} className="hover:bg-amber-50/50 transition-colors">
+                        <tr key={`cust-tbl2-${act.id}-${idx}`} className="hover:bg-amber-50/50 transition-colors">
                           <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">

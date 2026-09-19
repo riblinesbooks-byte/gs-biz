@@ -12,22 +12,31 @@ import {
   ExternalLink,
   Download,
   Eye,
+  Edit3,
   X,
   FileSpreadsheet,
   CheckCircle,
 } from 'lucide-react';
+import { ViewEditModifyModal } from '../modals/ViewEditModifyModal';
 
 export const ListOfSeller: React.FC = () => {
   const {
     buyerLeads,
     setCurrentPage,
     currentRole,
+    currentUser,
     unlockBuyer,
+    updateBuyerLead,
+    sendBackBuyerForModification,
+    addToast,
   } = useApp();
+
+  const isStaff = currentUser?.role === 'staff' || currentRole === 'staff';
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [selectedSeller, setSelectedSeller] = useState<BuyerLead | null>(null);
+  const [modifyingSeller, setModifyingSeller] = useState<BuyerLead | null>(null);
 
   // Approved and locked sellers
   const approvedSellers = buyerLeads.filter((b) => b.isLocked || b.potentialApproved);
@@ -187,6 +196,7 @@ export const ListOfSeller: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-semibold uppercase text-[11px] tracking-wider">
+                <th className="px-4 py-3 text-indigo-900">Action</th>
                 <th className="px-4 py-3">Date 🔒</th>
                 <th className="px-4 py-3">Name 🔒</th>
                 <th className="px-4 py-3">Mobile No 🔒</th>
@@ -200,13 +210,41 @@ export const ListOfSeller: React.FC = () => {
             <tbody className="divide-y divide-slate-200">
               {filteredSellers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
                     No approved sellers found matching your query.
                   </td>
                 </tr>
               ) : (
                 filteredSellers.map((seller) => (
                   <tr key={seller.id} className="hover:bg-slate-50/70 transition">
+                    {/* View & Edit & Modify Button */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        id={`btn-view-edit-modify-${seller.id}`}
+                        disabled={isStaff}
+                        onClick={() => {
+                          if (isStaff) {
+                            addToast('Staff login cannot edit or modify approved seller records. Admin access required.', 'warning');
+                            return;
+                          }
+                          setModifyingSeller(seller);
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1.5 ${
+                          isStaff
+                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60 shadow-none'
+                            : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-900 border border-indigo-200 shadow-2xs cursor-pointer'
+                        }`}
+                        title={
+                          isStaff
+                            ? 'Staff login cannot edit or modify approved records (Admin access required)'
+                            : 'View, Edit, or Send for Modification'
+                        }
+                      >
+                        <Edit3 className={`w-3.5 h-3.5 ${isStaff ? 'text-slate-400' : 'text-indigo-600'}`} />
+                        <span>View &amp; Edit &amp; Modify</span>
+                      </button>
+                    </td>
+
                     {/* Date 🔒 */}
                     <td className="px-4 py-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
                       <div className="flex items-center gap-1">
@@ -394,6 +432,26 @@ export const ListOfSeller: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* View, Edit & Modify Modal */}
+      <ViewEditModifyModal
+        isOpen={!!modifyingSeller}
+        onClose={() => setModifyingSeller(null)}
+        entityType="seller"
+        record={modifyingSeller}
+        onSaveEdit={(updates) => {
+          if (modifyingSeller) {
+            updateBuyerLead(modifyingSeller.id, updates);
+            addToast('Seller updated successfully', 'success');
+          }
+        }}
+        onSendModification={(reason) => {
+          if (modifyingSeller) {
+            sendBackBuyerForModification(modifyingSeller.id, reason);
+            addToast('Seller sent back to Waiting for Modification', 'info');
+          }
+        }}
+      />
     </div>
   );
 };
