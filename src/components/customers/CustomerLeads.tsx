@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CustomerLead } from '../../types';
 import {
@@ -15,8 +15,16 @@ import {
 } from 'lucide-react';
 
 export const CustomerLeads: React.FC = () => {
-  const { customerLeads, addCustomerLead, deleteCustomerLead, moveToPotentialCustomer, currentRole, setCurrentPage } =
-    useApp();
+  const {
+    customerLeads,
+    addCustomerLead,
+    deleteCustomerLead,
+    moveToPotentialCustomer,
+    currentRole,
+    currentUser,
+    users,
+    setCurrentPage,
+  } = useApp();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [search, setSearch] = useState('');
@@ -29,7 +37,14 @@ export const CustomerLeads: React.FC = () => {
   const [locality, setLocality] = useState('Nanganallur');
   const [expectedPrice, setExpectedPrice] = useState('');
   const [notes, setNotes] = useState('');
-  const [handledBy, setHandledBy] = useState('Venkatesh');
+  const [handledBy, setHandledBy] = useState(() => currentUser?.username || 'Venkatesh');
+
+  // Keep synchronized with logged-in user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setHandledBy(currentUser.username);
+    }
+  }, [currentUser?.username]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,11 +209,21 @@ export const CustomerLeads: React.FC = () => {
               <select
                 value={handledBy}
                 onChange={(e) => setHandledBy(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-medium"
               >
-                <option value="Venkatesh">Venkatesh</option>
-                <option value="Muthukumar">Muthukumar</option>
-                <option value="Admin">Admin</option>
+                {users && users.length > 0 ? (
+                  users.map((u) => (
+                    <option key={u.id} value={u.username}>
+                      {u.username} ({u.role === 'admin' ? 'Admin' : 'Staff'})
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Venkatesh">Venkatesh (Staff)</option>
+                    <option value="Muthukumar">Muthukumar (Staff)</option>
+                    <option value="Admin">Admin</option>
+                  </>
+                )}
               </select>
             </div>
           </div>

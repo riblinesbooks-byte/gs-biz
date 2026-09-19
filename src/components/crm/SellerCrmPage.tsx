@@ -85,6 +85,7 @@ export const SellerCrmPage: React.FC = () => {
     activityMasters,
     addActivityLog,
     currentRole,
+    currentUser,
     setCurrentPage,
   } = useApp();
 
@@ -223,7 +224,14 @@ export const SellerCrmPage: React.FC = () => {
   const [newActivityType, setNewActivityType] = useState('Staff - Mobile Call');
   const [newActivityNotes, setNewActivityNotes] = useState('');
   const [newActivityDate, setNewActivityDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [newActivityHandledBy, setNewActivityHandledBy] = useState(() => (currentRole === 'admin' ? 'MD' : 'Staff'));
+  const [newActivityHandledBy, setNewActivityHandledBy] = useState(() => currentUser?.username || (currentRole === 'admin' ? 'MD' : 'Staff'));
+
+  // Automatically keep Handled By synchronized with logged in user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setNewActivityHandledBy(currentUser.username);
+    }
+  }, [currentUser?.username]);
 
   // Filtered sellers list
   const filteredSellers = useMemo(() => {
@@ -706,7 +714,7 @@ export const SellerCrmPage: React.FC = () => {
                       />
                     </div>
 
-                    <div className="w-28">
+                    <div className="w-32">
                       <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Handled By
                       </label>
@@ -714,8 +722,9 @@ export const SellerCrmPage: React.FC = () => {
                         type="text"
                         value={newActivityHandledBy}
                         onChange={(e) => setNewActivityHandledBy(e.target.value)}
-                        placeholder="Staff / MD"
-                        className="w-full text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="User ID / Name"
+                        title={`Logged in user: ${currentUser?.username || 'User'}`}
+                        className="w-full text-xs py-1.5 px-2 bg-slate-50 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                       />
                     </div>
                   </div>
@@ -871,7 +880,7 @@ export const SellerCrmPage: React.FC = () => {
                                     entityId: selectedSeller.id,
                                     entityName: selectedSeller.name,
                                     notes: `Completed ${act.name} for seller lead.`,
-                                    handledBy: selectedSeller.firstCallHandledBy || (currentRole === 'admin' ? 'MD' : 'Staff'),
+                                    handledBy: currentUser?.username || selectedSeller.firstCallHandledBy || (currentRole === 'admin' ? 'MD' : 'Staff'),
                                     status: 'Completed',
                                   };
                                   addActivityLog(newLog);

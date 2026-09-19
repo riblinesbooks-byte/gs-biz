@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BuyerLead, PropertyItem, CustomerLead } from '../../types';
 import {
@@ -36,6 +36,8 @@ export const CrmKanbanBoard: React.FC<CrmKanbanBoardProps> = ({ moduleType, titl
     activityMasters,
     addActivityLog,
     currentRole,
+    currentUser,
+    users,
   } = useApp();
 
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -52,7 +54,14 @@ export const CrmKanbanBoard: React.FC<CrmKanbanBoardProps> = ({ moduleType, titl
 
   const [selectedActivityType, setSelectedActivityType] = useState<string>('Mobile call');
   const [activityNote, setActivityNote] = useState('');
-  const [activityHandledBy, setActivityHandledBy] = useState('Venkatesh');
+  const [activityHandledBy, setActivityHandledBy] = useState(() => currentUser?.username || 'Venkatesh');
+
+  // Automatically keep Handled By synchronized with logged in user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setActivityHandledBy(currentUser.username);
+    }
+  }, [currentUser?.username]);
 
   // Define columns based on moduleType
   const columns = (() => {
@@ -257,11 +266,21 @@ export const CrmKanbanBoard: React.FC<CrmKanbanBoardProps> = ({ moduleType, titl
                 <select
                   value={activityHandledBy}
                   onChange={(e) => setActivityHandledBy(e.target.value)}
-                  className="w-full px-3 py-2 rounded border border-slate-300 bg-white"
+                  className="w-full px-3 py-2 rounded border border-slate-300 bg-white font-medium"
                 >
-                  <option value="Venkatesh">Venkatesh</option>
-                  <option value="Muthukumar">Muthukumar</option>
-                  <option value="Admin">Admin</option>
+                  {users && users.length > 0 ? (
+                    users.map((u) => (
+                      <option key={u.id} value={u.username}>
+                        {u.username} ({u.role === 'admin' ? 'Admin' : 'Staff'})
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Venkatesh">Venkatesh (Staff)</option>
+                      <option value="Muthukumar">Muthukumar (Staff)</option>
+                      <option value="Admin">Admin</option>
+                    </>
+                  )}
                 </select>
               </div>
 

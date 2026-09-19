@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BuyerLead } from '../../types';
 import {
@@ -22,6 +22,8 @@ export const BuyerLeads: React.FC = () => {
     deleteBuyerLead,
     moveToPotentialBuyer,
     currentRole,
+    currentUser,
+    users,
     setCurrentPage,
     tags,
   } = useApp();
@@ -39,7 +41,14 @@ export const BuyerLeads: React.FC = () => {
   const [budget, setBudget] = useState('');
   const [preferredLocality, setPreferredLocality] = useState('20th Street, Nanganallur');
   const [requirement, setRequirement] = useState('');
-  const [firstCallHandledBy, setFirstCallHandledBy] = useState('Venkatesh');
+  const [firstCallHandledBy, setFirstCallHandledBy] = useState(() => currentUser?.username || 'Venkatesh');
+
+  // Keep synchronized with logged-in user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setFirstCallHandledBy(currentUser.username);
+    }
+  }, [currentUser?.username]);
   const [recentUpdate, setRecentUpdate] = useState('');
   const [comments, setComments] = useState('');
 
@@ -241,11 +250,21 @@ export const BuyerLeads: React.FC = () => {
               <select
                 value={firstCallHandledBy}
                 onChange={(e) => setFirstCallHandledBy(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-medium"
               >
-                <option value="Venkatesh">Venkatesh</option>
-                <option value="Muthukumar">Muthukumar</option>
-                <option value="Admin">Admin</option>
+                {users && users.length > 0 ? (
+                  users.map((u) => (
+                    <option key={u.id} value={u.username}>
+                      {u.username} ({u.role === 'admin' ? 'Admin' : 'Staff'})
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Venkatesh">Venkatesh (Staff)</option>
+                    <option value="Muthukumar">Muthukumar (Staff)</option>
+                    <option value="Admin">Admin</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
