@@ -39,8 +39,10 @@ import { CustomerLeads } from './components/customers/CustomerLeads';
 import { PotentialCustomerList } from './components/customers/PotentialCustomerList';
 import { LockPotentialCustomer } from './components/customers/LockPotentialCustomer';
 
-// CRM Drag & Drop Boards
-import { CrmKanbanBoard } from './components/crm/CrmKanbanBoard';
+// CRM Modules (Document Specification Layout)
+import { CustomerCrmPage } from './components/crm/CustomerCrmPage';
+import { SellerCrmPage } from './components/crm/SellerCrmPage';
+import { PropertyCrmPage } from './components/crm/PropertyCrmPage';
 
 // Reports & Tags
 import { ReportsHub } from './components/reports/ReportsHub';
@@ -67,39 +69,27 @@ const AppContent: React.FC = () => {
         {currentPage === 'buyer_waiting_approval' && <WaitingForApproval />}
         {currentPage === 'buyer_list' && <ListOfSeller />}
         {currentPage === 'buyer_lock' && <LockPotentialBuyer />}
-        {(currentPage === 'crm_buyer' || currentPage === 'buyer_crm') && (
-          <CrmKanbanBoard
-            moduleType="buyer"
-            title="CRM for Seller"
-            description="Track seller interaction history, mobile calls, 121 meetings in office, property visits, and conferences with drag-and-drop pipeline progression."
-          />
-        )}
+        {(currentPage === 'crm_buyer' ||
+          currentPage === 'buyer_crm' ||
+          currentPage === 'reports_crm_buyer') && <SellerCrmPage />}
 
         {/* Property Details Module (Document Specification Workflow) */}
         {currentPage === 'property_create' && <CreateProperty />}
         {(currentPage === 'property_move_potential' || currentPage === 'property_potential') && <MoveToPotentialProperty />}
         {(currentPage === 'property_waiting_approval' || currentPage === 'property_lock') && <WaitingForApprovalProperty />}
         {currentPage === 'property_list' && <ListOfProperty />}
-        {(currentPage === 'crm_property' || currentPage === 'property_crm') && (
-          <CrmKanbanBoard
-            moduleType="property"
-            title="CRM for Property"
-            description="Manage property sale lifecycle from verification to active marketing, site visits, legal approvals, and deal closings."
-          />
-        )}
+        {(currentPage === 'crm_property' ||
+          currentPage === 'property_crm' ||
+          currentPage === 'reports_crm_property') && <PropertyCrmPage />}
 
         {/* Customer Details Module (Document Specification Workflow) */}
         {(currentPage === 'customer_add' || currentPage === 'customer_leads') && <AddCustomerLeads />}
         {(currentPage === 'customer_move_potential' || currentPage === 'customer_potential') && <MoveToPotentialCustomer />}
         {(currentPage === 'customer_waiting_approval' || currentPage === 'customer_lock') && <WaitingForApprovalCustomer />}
         {currentPage === 'customer_list' && <ListOfCustomer />}
-        {(currentPage === 'crm_customer' || currentPage === 'customer_crm') && (
-          <CrmKanbanBoard
-            moduleType="customer"
-            title="CRM for Customer"
-            description="Track activities with property owners, sellers, JV promoters, and landlords with drag-and-drop status transitions."
-          />
-        )}
+        {(currentPage === 'crm_customer' ||
+          currentPage === 'customer_crm' ||
+          currentPage === 'reports_crm_customer') && <CustomerCrmPage />}
 
         {/* Canvas Module */}
         {(currentPage === 'seller_canvas' || currentPage === 'buyer_canvas') && <SellerCanvas />}
@@ -110,7 +100,10 @@ const AppContent: React.FC = () => {
         {(currentPage === 'reports' ||
           (currentPage.startsWith('reports_') &&
             currentPage !== 'reports_customer_canvas' &&
-            currentPage !== 'reports_property_canvas')) && <ReportsHub />}
+            currentPage !== 'reports_property_canvas' &&
+            currentPage !== 'reports_crm_customer' &&
+            currentPage !== 'reports_crm_buyer' &&
+            currentPage !== 'reports_crm_property')) && <ReportsHub />}
 
         {/* Tags Taxonomy Module */}
         {(currentPage === 'tags' || currentPage.startsWith('tag_')) && <TagManager />}

@@ -141,7 +141,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // State with LocalStorage Persistence
   const [activityMasters, setActivityMasters] = useState<ActivityMasterType[]>(() => {
     const saved = localStorage.getItem('crm_act_masters');
-    return saved ? JSON.parse(saved) : initialActivityMasters;
+    if (saved) {
+      try {
+        const parsed: ActivityMasterType[] = JSON.parse(saved);
+        // If saved list already contains "Update on Job" and "Staff - Mobile Call", use it
+        const hasJobUpdate = parsed.some((a) => a.name === 'Update on Job');
+        const hasStaffCall = parsed.some((a) => a.name === 'Staff - Mobile Call');
+        if (hasJobUpdate && hasStaffCall) {
+          return parsed;
+        }
+        // Otherwise, merge custom activities while preserving initial standard CRM activities
+        const standardNames = new Set(initialActivityMasters.map((a) => a.name.toLowerCase()));
+        const customOnly = parsed.filter((a) => !standardNames.has(a.name.toLowerCase()));
+        const merged = [...initialActivityMasters, ...customOnly];
+        localStorage.setItem('crm_act_masters', JSON.stringify(merged));
+        return merged;
+      } catch (err) {
+        console.error('Error parsing crm_act_masters:', err);
+      }
+    }
+    return initialActivityMasters;
   });
 
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(() => {

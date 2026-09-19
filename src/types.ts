@@ -10,6 +10,7 @@ export type ActivityMasterType = {
   color?: string;
   defaultDurationMinutes: number;
   isSystem?: boolean;
+  activityGroup?: 'current' | 'pending';
 };
 
 export type ActivityLog = {
